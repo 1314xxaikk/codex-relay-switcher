@@ -1,0 +1,11 @@
+
+__pycache__/
+*.pyc
+key*.txt
+paths.json
+_data/
+工具说明_中文.txt
+
+
+pythonw_path.txt
+
