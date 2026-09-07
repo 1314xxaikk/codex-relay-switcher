@@ -35,7 +35,7 @@ Windows 上双击就能用的图形小工具：把「切换 Codex 所连 AI 中�
 
 ```json
 {
-  "codex_config": "C:\\Users\\你\\ .codex\\config.toml",
+  "codex_config": "/your-path/.codex/config.toml",
   "relay_dir": "C:\\path\\to\\your-relay",
   "relay_py": "C:\\path\\to\\your-relay\\relay.py",
   "key_txt": "C:\\path\\to\\your-relay\\key.txt",
