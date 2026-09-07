@@ -87,13 +87,22 @@ def write_log(txt):
 
 # 内置近一年主流模型（下拉选择用；点“获取该站真实模型”可拉取该站真实列表合并进来）
 BUILTIN_MODELS = [
-    "claude-opus-4-8", "claude-opus-5", "claude-sonnet-4-5",
-    "gpt-5.6-sol", "gpt-5.2", "gpt-5", "gpt-4.1",
-    "deepseek-v4-flash", "deepseek-v3.2", "deepseek-r1",
-    "qwen3-max", "qwen3-coder", "qwen2.5-coder-32b",
-    "gemini-2.5-pro", "gemini-2.5-flash",
-    "glm-4.6", "glm-4.5", "kimi-k2", "moonshot-v1-128k",
-    "llama-3.3-70b", "mistral-large-2",
+    # OpenAI
+    "gpt-6-astra", "gpt-6", "gpt-5.6-sol", "gpt-5.5", "gpt-5.5-pro", "gpt-5.2", "gpt-5", "gpt-4.1",
+    # Anthropic Claude
+    "claude-opus-5", "claude-opus-4-8", "claude-sonnet-5", "claude-sonnet-4-5", "claude-fable-5", "claude-mythos-5",
+    # DeepSeek
+    "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v3.2", "deepseek-r1",
+    # 阿里 Qwen
+    "qwen3.8-max", "qwen3.8-flash", "qwen3-max", "qwen3-coder", "qwen2.5-coder-32b",
+    # Google Gemini
+    "gemini-4", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-pro", "gemini-3.5-flash", "gemini-2.5-pro", "gemini-2.5-flash",
+    # 智谱 GLM
+    "glm-5.3", "glm-5.3-flash", "glm-5.2", "glm-4.6",
+    # Kimi / 其它国产
+    "kimi-k3", "kimi-k2", "moonshot-v1-128k",
+    # 开源/其它
+    "llama-4", "llama-3.3-70b", "mistral-large-2",
 ]
 
 # ---------------- 通用小工具 ----------------
@@ -1276,7 +1285,7 @@ class Questionnaire(ttk.Frame):
 class App:
     def __init__(self, root):
         self.root = root
-        root.title("Codex 中转站切换助手 v1.0.8")
+        root.title("Codex 中转站切换助手 v1.0.9")
         root.geometry("1000x800")
         try:
             root.tk.call("tk", "scaling", 1.15)
