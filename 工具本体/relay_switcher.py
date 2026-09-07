@@ -1276,7 +1276,7 @@ class Questionnaire(ttk.Frame):
 class App:
     def __init__(self, root):
         self.root = root
-        root.title("Codex 中转站切换助手 v1.0.7")
+        root.title("Codex 中转站切换助手 v1.0.8")
         root.geometry("1000x800")
         try:
             root.tk.call("tk", "scaling", 1.15)
@@ -1323,6 +1323,7 @@ class App:
         left.pack(side="left", fill="y", padx=(0, 8))
         ops = ttk.Frame(left)
         ops.pack(fill="x", pady=(0, 4))
+        ttk.Button(ops, text="新建", command=self.new_scheme).pack(side="left", padx=2)
         ttk.Button(ops, text="改名", command=self.rename_selected).pack(side="left", padx=2)
         ttk.Button(ops, text="删除", command=self.delete_selected).pack(side="left", padx=2)
         ttk.Button(ops, text="导入", command=self.import_profiles_ui).pack(side="left", padx=2)
@@ -1913,6 +1914,32 @@ class App:
                 self.lb.selection_set(i)
                 self.lb.see(i)
                 break
+
+    def new_scheme(self):
+        import tkinter.simpledialog as sd
+        name = sd.askstring("新建方案", "给新方案起个名字：", parent=self.root)
+        if not name or not name.strip():
+            return
+        name = name.strip()
+        profs = load_profiles()
+        if name in profs:
+            if not messagebox.askyesno("同名", "已存在「%s」，用空内容覆盖它？" % name):
+                return
+        profs[name] = {
+            "mode": "relay",
+            "address": "",
+            "api_key": "",
+            "model": "",
+            "models": [],
+            "network": "proxy",
+            "proxy": P.get("proxy_url") or "",
+            "note": "",
+        }
+        save_profiles(profs)
+        self._refresh_scheme_list()
+        self._select_in_list(name)
+        self.on_scheme_select(None)
+        self.log("已新建空方案「%s」，请在右边填写后点「保存」" % name)
 
     def save_as_new(self):
         vals = self.q2.values()
