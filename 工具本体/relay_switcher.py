@@ -1099,6 +1099,9 @@ class Questionnaire(ttk.Frame):
         self._model_list = []
         self.batch_trial_cb = None
         self._build()
+        for _var in (self.v_address, self.v_key, self.v_model):
+            _var.trace_add("write", self._update_checks)
+        self._update_checks()
 
     # ---- 基础组件 ----
     def _section(self, title, sub=None):
@@ -1122,7 +1125,12 @@ class Questionnaire(ttk.Frame):
 
         # 2 地址
         self._section("2. 中转站地址（必填）")
-        self.e_addr = self._entry()
+        arow = ttk.Frame(self)
+        arow.pack(fill="x")
+        self.e_addr = ttk.Entry(arow, font=("Microsoft YaHei UI", 11))
+        self.e_addr.pack(side="left", fill="x", expand=True, ipady=2)
+        self.st_addr = ttk.Label(arow, text="✗ 未填", foreground="#a36209", width=6)
+        self.st_addr.pack(side="left", padx=(6, 0))
         self.l_hint = ttk.Label(self, textvariable=self.addr_hint, foreground="#888", wraplength=700, justify="left")
         self.l_hint.pack(anchor="w", pady=(2, 0))
 
@@ -1133,6 +1141,8 @@ class Questionnaire(ttk.Frame):
         self.e_key = ttk.Entry(kf, font=("Microsoft YaHei UI", 11), show="●")
         self.e_key.pack(side="left", fill="x", expand=True, ipady=2)
         ttk.Button(kf, text="显示/隐藏", command=self._toggle_key).pack(side="left", padx=(6, 0))
+        self.st_key = ttk.Label(kf, text="✗ 未填", foreground="#a36209", width=6)
+        self.st_key.pack(side="left", padx=(6, 0))
 
         # 4 网络
         self._section("4. 网络方式", "只有中继模式需要选；可先点底部「测连通」看这个站怎么连才通。")
@@ -1153,6 +1163,8 @@ class Questionnaire(ttk.Frame):
                                  foreground="#0a6", wraplength=520, justify="left")
         self.l_model.pack(side="left", anchor="w")
         ttk.Button(row, text="选择模型 …", command=self.open_picker).pack(side="left", padx=(10, 0))
+        self.st_model = ttk.Label(self, text="模型：✗ 未填", foreground="#a36209")
+        self.st_model.pack(anchor="w", pady=(2, 0))
         ttk.Label(self, text="可多选几个；点「立即连接/存为新方案」后会自动写进 Codex 的模型下拉，在 Codex 顶部就能显示和切换。",
                   foreground="#888", wraplength=700, justify="left").pack(anchor="w", pady=(3, 0))
         brow = ttk.Frame(self)
@@ -1161,6 +1173,19 @@ class Questionnaire(ttk.Frame):
         self.btn_batch_trial.pack(side="left")
         self._sync()
         self._refresh_model_label()
+
+    def _update_checks(self, *a):
+        def paint(attr, ok):
+            lb = getattr(self, attr, None)
+            if lb is None:
+                return
+            if ok:
+                lb.configure(text="✓ 已填", foreground="#0a7a2f")
+            else:
+                lb.configure(text="✗ 未填", foreground="#a36209")
+        paint("st_addr", bool((self.v_address.get() or "").strip()))
+        paint("st_key", bool((self.v_key.get() or "").strip()))
+        paint("st_model", bool((self.v_model.get() or "").strip()))
 
     def _sync(self):
         if self.v_mode.get() == "relay":
@@ -1251,7 +1276,7 @@ class Questionnaire(ttk.Frame):
 class App:
     def __init__(self, root):
         self.root = root
-        root.title("Codex 中转站切换助手 v1.0.5")
+        root.title("Codex 中转站切换助手 v1.0.6")
         root.geometry("1000x800")
         try:
             root.tk.call("tk", "scaling", 1.15)
