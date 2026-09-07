@@ -263,7 +263,20 @@ def patch_relay(upstream, proxy, model_override):
             new_lines.append(ln)
     if n < 3:
         return False, "中继脚本里没找全要改的三行(只找到%d行)，已中止，未改动。" % n
-    write_text(rp, "".join(new_lines))
+    out = "".join(new_lines)
+    # 关键修复：代理为空(直连)时不能套空代理处理器，否则报 no host given
+    if "if HEMA_PROXY:" not in out:
+        bug = """        opener = urllib.request.build_opener(urllib.request.ProxyHandler({
+            "http": HEMA_PROXY, "https": HEMA_PROXY,
+        }))"""
+        fixed = """        if HEMA_PROXY:
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({
+                "http": HEMA_PROXY, "https": HEMA_PROXY,
+            }))
+        else:
+            opener = urllib.request.build_opener()"""
+        out = out.replace(bug, fixed, 1)
+    write_text(rp, out)
     return True, b
 
 
