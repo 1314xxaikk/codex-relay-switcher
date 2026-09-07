@@ -1251,7 +1251,7 @@ class Questionnaire(ttk.Frame):
 class App:
     def __init__(self, root):
         self.root = root
-        root.title("Codex 中转站切换助手")
+        root.title("Codex 中转站切换助手 v1.0.5")
         root.geometry("1000x800")
         try:
             root.tk.call("tk", "scaling", 1.15)
@@ -1923,11 +1923,18 @@ class App:
         pass  # 简化：托盘菜单在打开时不再动态重建；切换请用主窗口
 
     # ---------- 方案区动作 ----------
+    def _scheme_summary(self, name, p):
+        keylen = len((p.get("api_key") or "").strip())
+        net = "走代理" if p.get("network") == "proxy" else "直连"
+        return "已载入「%s」| 地址: %s | API Key: %s | 网络: %s | 模型: %s" % (
+            name, (p.get("address") or "(空)"), ("已填(%d位)" % keylen) if keylen else "未填",
+            net, (p.get("model") or ""))
+
     def on_scheme_select(self, e):
         name = self._current_sel_name()
         if name and name in self.profiles:
             self.q2.load(self.profiles[name])
-            self.l_sel.configure(text="正在调整：" + name)
+            self.l_sel.configure(text=self._scheme_summary(name, self.profiles[name]))
 
     def _select_in_list(self, name):
         for i in range(self.lb.size()):
