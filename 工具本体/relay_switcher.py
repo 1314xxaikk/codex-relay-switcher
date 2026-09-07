@@ -1276,7 +1276,7 @@ class Questionnaire(ttk.Frame):
 class App:
     def __init__(self, root):
         self.root = root
-        root.title("Codex 中转站切换助手 v1.0.6")
+        root.title("Codex 中转站切换助手 v1.0.7")
         root.geometry("1000x800")
         try:
             root.tk.call("tk", "scaling", 1.15)
@@ -1303,7 +1303,6 @@ class App:
         self.nb.pack(fill="both", expand=True)
         self.nb.bind("<<NotebookTabChanged>>", lambda e: self._on_tab())
 
-        self._build_home(self.nb)
         self._build_manage(self.nb)
         self._build_usage(self.nb)
         self._build_logtab(self.nb)
@@ -1317,41 +1316,26 @@ class App:
         self.report = scrolledtext.ScrolledText(outer, height=8, state="disabled", font=("Microsoft YaHei UI", 9))
         self.report.pack(fill="x")
 
-    def _build_home(self, nb):
-        f = ttk.Frame(nb, padding=6)
-        nb.add(f, text="🏠 首页 · 新建连接")
-        self.l_status = ttk.Label(f, foreground="#0a7a2f")
-        self.l_status.pack(anchor="w", pady=(0, 4))
-        ttk.Label(f, text="直接往下填新站点，填完点「立即连接」就切过去；想存起来以后用，点「存为新方案」。",
-                  foreground="#666").pack(anchor="w", pady=(0, 4))
-        sq = ScrollQ(f)
-        sq.pack(fill="both", expand=True)
-        self.q1 = Questionnaire(sq.inner)
-        self.q1.pack(fill="x")
-        self.q1.set_batch_cb(self.batch_trial)
-        btns = ttk.Frame(f)
-        btns.pack(fill="x", pady=(4, 0))
-        ttk.Button(btns, text="立即连接（切换生效）", command=self.home_connect).pack(side="left", padx=4)
-        ttk.Button(btns, text="试通（真实发一条）", command=self.home_trial).pack(side="left", padx=4)
-        ttk.Button(btns, text="存为新方案", command=self.home_save).pack(side="left", padx=4)
-        ttk.Button(btns, text="测连通", command=lambda: self.do_test(self.q1)).pack(side="left", padx=4)
-        ttk.Button(btns, text="获取该站真实模型", command=lambda: self.do_fetch(self.q1)).pack(side="left", padx=4)
-        self.home_sq = sq
-
     def _build_manage(self, nb):
         f = ttk.Frame(nb, padding=6)
-        nb.add(f, text="🗂 方案区 · 管理切换")
-        left = ttk.LabelFrame(f, text="已有方案（点选载入）", padding=6)
+        nb.add(f, text="方案区")
+        left = ttk.LabelFrame(f, text="已有方案", padding=6)
         left.pack(side="left", fill="y", padx=(0, 8))
+        ops = ttk.Frame(left)
+        ops.pack(fill="x", pady=(0, 4))
+        ttk.Button(ops, text="改名", command=self.rename_selected).pack(side="left", padx=2)
+        ttk.Button(ops, text="删除", command=self.delete_selected).pack(side="left", padx=2)
+        ttk.Button(ops, text="导入", command=self.import_profiles_ui).pack(side="left", padx=2)
+        ttk.Button(ops, text="导出", command=self.export_profiles_ui).pack(side="left", padx=2)
         lbwrap = ttk.Frame(left)
         lbwrap.pack(fill="both", expand=True)
         sb = ttk.Scrollbar(lbwrap, orient="vertical")
-        self.lb = tk.Listbox(lbwrap, height=14, width=30, yscrollcommand=sb.set)
+        self.lb = tk.Listbox(lbwrap, height=16, width=26, yscrollcommand=sb.set)
         sb.config(command=self.lb.yview)
         sb.pack(side="right", fill="y")
         self.lb.pack(side="left", fill="both", expand=True)
         self.lb.bind("<<ListboxSelect>>", self.on_scheme_select)
-        ttk.Label(left, text="当前使用中：", foreground="#0a7a2f").pack(anchor="w", pady=(6, 0))
+        ttk.Label(left, text="当前使用：", foreground="#0a7a2f").pack(anchor="w", pady=(6, 0))
         self.l_active = ttk.Label(left, text="", foreground="#0a7a2f")
         self.l_active.pack(anchor="w")
 
@@ -1362,26 +1346,25 @@ class App:
         self.q2 = Questionnaire(sq.inner)
         self.q2.pack(fill="x")
         self.q2.set_batch_cb(self.batch_trial)
-        self.l_sel = ttk.Label(right, text="（先在左边点选一个方案）", foreground="#888")
+        self.l_sel = ttk.Label(right, text="（先在左边点选方案）", foreground="#888")
         self.l_sel.pack(anchor="w", pady=(2, 0))
+
         btns = ttk.Frame(right)
-        btns.pack(fill="x", pady=(4, 0))
-        ttk.Button(btns, text="保存改动", command=self.save_changes).pack(side="left", padx=3)
-        ttk.Button(btns, text="切换到该方案", command=self.switch_selected).pack(side="left", padx=3)
-        ttk.Button(btns, text="体检所有方案（推荐最优）", command=self.health_all).pack(side="left", padx=3)
-        ttk.Button(btns, text="试通此方案", command=self.scheme_trial).pack(side="left", padx=3)
-        ttk.Button(btns, text="复制成新方案", command=self.duplicate_selected).pack(side="left", padx=3)
-        ttk.Button(btns, text="改名", command=self.rename_selected).pack(side="left", padx=3)
-        ttk.Button(btns, text="删除", command=self.delete_selected).pack(side="left", padx=3)
-        ttk.Button(btns, text="恢复上次配置", command=self.do_restore).pack(side="left", padx=3)
+        btns.pack(fill="x", pady=(3, 0))
+        ttk.Button(btns, text="保存", command=self.save_changes).pack(side="left", padx=3)
+        ttk.Button(btns, text="切换", command=self.switch_selected).pack(side="left", padx=3)
+        ttk.Button(btns, text="另存为新方案", command=self.save_as_new).pack(side="left", padx=3)
+        ttk.Button(btns, text="测连通", command=lambda: self.do_test(self.q2)).pack(side="left", padx=3)
+        ttk.Button(btns, text="获取该站真实模型", command=lambda: self.do_fetch(self.q2)).pack(side="left", padx=3)
         btns2 = ttk.Frame(right)
         btns2.pack(fill="x", pady=(3, 0))
-        ttk.Button(btns2, text="切到最优方案（先体检）", command=self.health_and_switch_best).pack(side="left", padx=3)
-        ttk.Button(btns2, text="导出方案", command=self.export_profiles_ui).pack(side="left", padx=3)
-        ttk.Button(btns2, text="导入方案", command=self.import_profiles_ui).pack(side="left", padx=3)
-        ttk.Label(right, text="改完记得点「保存改动」；「切换」会写 C 盘并重启中继(有自动备份)。",
-                  foreground="#888").pack(anchor="w", pady=(4, 0))
+        ttk.Button(btns2, text="体检所有方案", command=self.health_all).pack(side="left", padx=3)
+        ttk.Button(btns2, text="切到最优", command=self.health_and_switch_best).pack(side="left", padx=3)
+        ttk.Button(btns2, text="恢复上次", command=self.do_restore).pack(side="left", padx=3)
+        ttk.Label(right, text="「批量试通这些模型」在模型题目下方；「切换」会写 C 盘并重启中继（有自动备份）。",
+                  foreground="#888").pack(anchor="w", pady=(3, 0))
         self.manage_sq = sq
+
 
     def _build_usage(self, nb):
         f = ttk.Frame(nb, padding=6)
@@ -1492,10 +1475,7 @@ class App:
             cur = self.nb.index(self.nb.select())
         except Exception:
             cur = 0
-        if cur >= 2:
-            self.canvas_now = None
-        else:
-            self.canvas_now = self.home_sq.canvas if cur == 0 else self.manage_sq.canvas
+        self.canvas_now = self.manage_sq.canvas if cur == 0 else None
         self._refresh_status()
 
     def _startup_load(self):
@@ -1508,11 +1488,10 @@ class App:
             name = sorted(profs.keys())[0]
         self.active_name = name
         write_active(name)
-        self.q1.load(profs[name])
         self._select_in_list(name)
         self.on_scheme_select(None)
         try:
-            self.nb.select(1)
+            self.nb.select(0)
         except Exception:
             pass
         self._refresh_status()
@@ -1520,8 +1499,10 @@ class App:
 
     def _refresh_status(self):
         n = self.active_name or "（暂无）"
-        self.l_status.configure(text="● 当前正在用：" + n)
-        self.l_active.configure(text=n)
+        if getattr(self, "l_status", None) is not None:
+            self.l_status.configure(text="● 当前正在用：" + n)
+        if getattr(self, "l_active", None) is not None:
+            self.l_active.configure(text=n)
 
     def _refresh_scheme_list(self):
         self.profiles = load_profiles()
@@ -1605,34 +1586,6 @@ class App:
         return raw.strip() if raw.strip() else raw
 
     # ---------- 首页动作 ----------
-    def home_connect(self):
-        vals = self.q1.values()
-        self._apply_vals(vals, vals.get("name") or "临时连接(未存方案)")
-
-    def home_save(self):
-        vals = self.q1.values()
-        miss = self._validate(vals)
-        if miss:
-            messagebox.showwarning("还差几项", "请先填：\n" + "\n".join(miss))
-            return
-        import tkinter.simpledialog as sd
-        name = sd.askstring("存为新方案", "给这个方案起个名字：", parent=self.root)
-        if not name or not name.strip():
-            return
-        name = name.strip()
-        if name in self.profiles:
-            if not messagebox.askyesno("同名", "已存在「%s」，覆盖它？" % name):
-                return
-        p = dict(vals)
-        p.pop("name", None)
-        self.profiles[name] = p
-        save_profiles(self.profiles)
-        self._refresh_scheme_list()
-        self.active_name = self.active_name or name
-        self.nb.select(1)
-        self._select_in_list(name)
-        self.log("已保存新方案：%s（可在「方案区」看到）" % name)
-
     def do_test(self, q):
         vals = q.values()
         if not vals["address"]:
@@ -1688,16 +1641,6 @@ class App:
             self.log(res)
             messagebox.showinfo("试通结果", res)
         self._run_async(work, done)
-
-    def home_trial(self):
-        self.do_trial_q(self.q1)
-
-    def scheme_trial(self):
-        name = self._current_sel_name()
-        if not name:
-            messagebox.showwarning("提示", "先在左边选中要试通的方案。")
-            return
-        self.do_trial_q(self.q2)
 
     def health_all(self):
         profs = load_profiles()
@@ -1971,6 +1914,34 @@ class App:
                 self.lb.see(i)
                 break
 
+    def save_as_new(self):
+        vals = self.q2.values()
+        miss = []
+        if not vals["address"]:
+            miss.append("中转站地址")
+        if not vals["api_key"]:
+            miss.append("API Key")
+        if not vals["model"]:
+            miss.append("模型")
+        if miss:
+            messagebox.showwarning("还差几项", "请先填：\n" + "\n".join(miss))
+            return
+        import tkinter.simpledialog as sd
+        name = sd.askstring("另存为新方案", "新方案名字：", parent=self.root)
+        if not name or not name.strip():
+            return
+        name = name.strip()
+        profs = load_profiles()
+        if name in profs:
+            if not messagebox.askyesno("同名", "已存在「%s」，覆盖它？" % name):
+                return
+        profs[name] = dict(vals)
+        save_profiles(profs)
+        self._refresh_scheme_list()
+        self._select_in_list(name)
+        self.on_scheme_select(None)
+        self.log("已另存为新方案：%s" % name)
+
     def save_changes(self):
         name = self._current_sel_name()
         if not name:
@@ -1990,27 +1961,18 @@ class App:
         if not name:
             messagebox.showwarning("提示", "先在左边选中要切换的方案。")
             return
-        vals = dict(self.profiles[name])
+        vals = self.q2.values()
+        miss = []
+        if not vals["address"]:
+            miss.append("中转站地址")
+        if not vals["api_key"]:
+            miss.append("API Key")
+        if not vals["model"]:
+            miss.append("模型")
+        if miss:
+            messagebox.showwarning("还差几项", "请先填：\n" + "\n".join(miss))
+            return
         self._apply_vals(vals, name)
-
-    def duplicate_selected(self):
-        name = self._current_sel_name()
-        if not name:
-            messagebox.showwarning("提示", "先在左边选中要复制的方案。")
-            return
-        import tkinter.simpledialog as sd
-        new = sd.askstring("复制成新方案", "新方案名字：", parent=self.root)
-        if not new or not new.strip():
-            return
-        new = new.strip()
-        if new in self.profiles:
-            messagebox.showwarning("提示", "已存在同名方案。")
-            return
-        self.profiles[new] = dict(self.profiles[name])
-        save_profiles(self.profiles)
-        self._refresh_scheme_list()
-        self._select_in_list(new)
-        self.log("已复制方案：%s → %s" % (name, new))
 
     def rename_selected(self):
         name = self._current_sel_name()
