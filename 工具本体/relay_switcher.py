@@ -1264,6 +1264,8 @@ class App:
         self._refresh_scheme_list()
         self._bind_wheel()
         self._on_tab()
+        self._startup_load()
+        self._on_tab()
         if HAS_TRAY:
             self.root.protocol("WM_DELETE_WINDOW", self._on_close_win)
         self.log("欢迎使用 Codex 中转站切换助手\n「首页」直接填新站信息；「方案区」管理/切换已有方案。")
@@ -1470,6 +1472,26 @@ class App:
         else:
             self.canvas_now = self.home_sq.canvas if cur == 0 else self.manage_sq.canvas
         self._refresh_status()
+
+    def _startup_load(self):
+        """打开后自动进入方案区并载入当前方案，首页也预填，避免看到空表单。"""
+        profs = load_profiles()
+        if not profs:
+            return
+        name = (read_active() or "").strip()
+        if name not in profs:
+            name = sorted(profs.keys())[0]
+        self.active_name = name
+        write_active(name)
+        self.q1.load(profs[name])
+        self._select_in_list(name)
+        self.on_scheme_select(None)
+        try:
+            self.nb.select(1)
+        except Exception:
+            pass
+        self._refresh_status()
+        self.log("已自动载入方案「%s」：地址/Key 已填好（方案区已选中；切别的方案请点左侧列表）" % name)
 
     def _refresh_status(self):
         n = self.active_name or "（暂无）"
