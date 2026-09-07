@@ -1553,7 +1553,9 @@ class App:
         if not sel:
             return None
         raw = self.lb.get(sel[0])
-        return raw[2:] if raw.startswith(("★ ", "   ")) else raw
+        if raw.startswith("★ "):
+            return raw[2:]
+        return raw.strip() if raw.strip() else raw
 
     # ---------- 首页动作 ----------
     def home_connect(self):
@@ -1908,7 +1910,7 @@ class App:
     def _select_in_list(self, name):
         for i in range(self.lb.size()):
             raw = self.lb.get(i)
-            nm = raw[2:] if raw.startswith(("★ ", "   ")) else raw
+            nm = raw[2:] if raw.startswith("★ ") else raw.strip()
             if nm == name:
                 self.lb.selection_clear(0, "end")
                 self.lb.selection_set(i)
